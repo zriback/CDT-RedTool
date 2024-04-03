@@ -1,3 +1,7 @@
+# Zach Riback
+# 4/3/2024
+# zrr4832@rit.edu
+
 # Get the user that should be disabled
 $username=$args[0]
 

