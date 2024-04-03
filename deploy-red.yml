@@ -1,0 +1,38 @@
+# Zach Riback
+# zrr4832@rit.edu
+# 4/2/2024
+---
+- name: Your first playbook
+  hosts: all
+  tasks: 
+
+  - name: Deploy Disable-LocalUser script
+    ansible.windows.win_copy:
+      src: ./Disable-LocalUser-Hook.ps1
+      dest: C:\Windows\System32\Disable-LocalUser-Hook.ps1
+  - name: Deploy Remove-LocalUser script
+    ansible.windows.win_copy:
+      src: ./Remove-LocalUser-Hook.ps1
+      dest: C:\Windows\System32\Remove-LocalUser-Hook.ps1
+  - name: Set up alias hooks
+    ansible.windows.win_powershell:
+      script: | 
+        [CmdletBinding()]
+        param (
+          [String]
+          $Path
+        )
+        # Create the needed location
+        ni $Path -Force 
+
+        echo "New-Alias -Name Disable-LocalUser -Value Disable-LocalUser-Hook.ps1 -ErrorAction Silent" | Out-File -Append -FilePath $Path
+        echo "New-Alias -Name Remove-LocalUser -Value Remove-LocalUser-Hook.ps1 -ErrorAction Silent" | Out-File -Append -FilePath $Path
+        echo "Remove-Item alias:dlu -ErrorAction Silent" | Out-File -Append -FilePath $Path
+        echo "Remove-Item alias:rlu -ErrorAction Silent" | Out-File -Append -FilePath $Path
+        echo "New-Alias -Name dlu -Value Disable-LocalUser-Hook.ps1 -ErrorAction Silent" | Out-File -Append -FilePath $Path
+        echo "New-Alias -Name rlu -Value Remove-LocalUser-Hook.ps1 -ErrorAction Silent" | Out-File -Append -FilePath $Path
+      parameters:
+        Path: C:\Users\{{ item }}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1
+    loop:
+      - ansible
+      - Administrator
